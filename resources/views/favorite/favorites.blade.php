@@ -1,5 +1,5 @@
 <div class="mt-4">
-    @if (isset($microposts))
+    @if (isset($microposts) && (Auth::user()->is_favoriting($micropost->id)))
         <ul class="list-none">
             @foreach ($microposts as $micropost)
                 <li class="flex items-start gap-x-2 mb-4">
@@ -18,27 +18,24 @@
                         <div>
                             {{-- 投稿内容 --}}
                             <p class="mb-0">{!! nl2br(e($micropost->content)) !!}</p>
-                        <table class="button">
                         {{-- お気に入りボタン --}}
-                        <td>
                         @if(Auth::user()->is_favoriting($micropost->id))
                             {{-- お気に入りを外すボタンのフォーム --}}
                             <form method="POST" action="{{ route('favorites.unfavorite', ['id' => $micropost->id]) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-error btn-sm normal-case" 
+                                <button type="submit" class="btn btn-error btn-block normal-case" 
                                     onclick="return confirm('id = {{ $micropost->user->id }} のお気に入りを外します。よろしいですか？')">UnFavorite</button>
                             </form>
                         @else
                             {{-- お気に入りボタンのフォーム --}}
                             <form method="POST" action="{{ route('favorites.favorite', ['id' => $micropost->id]) }}">
                                 @csrf
-                                <button type="submit" class="btn btn-primary btn-sm normal-case">Favorite</button>
+                                <button type="submit" class="btn btn-primary btn-block normal-case">Favorite</button>
                             </form>
                         @endif
-                        </td>
-                        {{-- 投稿削除ボタン --}}
-                        <td>
+                        </div>
+                        <div>
                             @if (Auth::id() == $micropost->user_id)
                                 {{-- 投稿削除ボタンのフォーム --}}
                                 <form method="POST" action="{{ route('microposts.destroy', $micropost->id) }}">
@@ -47,9 +44,8 @@
                                     <button type="submit" class="btn btn-error btn-sm normal-case" 
                                         onclick="return confirm('Delete id = {{ $micropost->id }} ?')">Delete</button>
                                 </form>
+                        
                             @endif
-                        </td>
-                        </table>
                         </div>
                     </div>
                 </li>

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;                        // 追加
 use App\Models\User;                                        // 追加
+use App\Models\Favorite;                                    // 追加
+use App\Models\Micropost;
 
 class UsersController extends Controller
 {
@@ -20,10 +22,13 @@ class UsersController extends Controller
         ]);                                                 // 追加
     }                                                       // 追加
     
-    public function show($id)                               // 追加
+    public function show($id)         // 追加
     {                                                       // 追加
         // idの値でユーザを検索して取得
         $user = User::findOrFail($id);
+        
+        // $id パラメータを使用してユーザーを取得
+        $user = User::find($id);
         
         // 関係するモデルの件数をロード
         $user->loadRelationshipCounts();
@@ -34,8 +39,15 @@ class UsersController extends Controller
         // ユーザ詳細ビューでそれを表示
         return view('users.show', [
             'user' => $user,
+            'microposts' => $microposts,
         ]);
     }
+    
+        public function loadRelationshipCounts()
+    {
+        $this->loadCount('microposts');
+    }
+    
     /**
      * ユーザのフォロー一覧ページを表示するアクション。
      *
@@ -82,6 +94,28 @@ class UsersController extends Controller
             'user' => $user,
             'users' => $followers,
         ]);
-        
     }
+  
+    
+    public function favorites($id)
+    {
+        // idの値をURLパラメータから取得
+        // $id = $request->id; // もしくは、$request->route('id') を使用する
+        // idの値でユーザを検索して取得
+        $user = User::findOrFail($id);
+
+        // 関係するモデルの件数をロード
+        $user->loadRelationshipCounts();
+
+        // ユーザのお気に入り一覧を取得
+        $favorites = $user->favorites()->orderBy('created_at', 'desc')->paginate(10);
+
+        // お気に入り一覧ビューでそれらを表示
+        
+        return view('users.favorites', [
+            'user' => $user, // $user をビューに渡す
+            'microposts' => $favorites,
+        ]);
+    }
+
 }
